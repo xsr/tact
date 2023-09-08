@@ -1,4 +1,3 @@
-import { TactLogger } from "../logger";
 import { errorToString } from "../utils/errorToString";
 
 // Wasm Imports
@@ -47,7 +46,7 @@ type CompileResult = {
     warnings: string
 };
 
-export async function funcCompile(args: { entries: string[], sources: { path: string, content: string }[], logger: TactLogger }): Promise<FuncCompilationResult> {
+export async function funcCompile(args: { entries: string[], sources: { path: string, content: string }[]}): Promise<FuncCompilationResult> {
 
     // Parameters
     let files: string[] = args.entries;
@@ -125,7 +124,7 @@ export async function funcCompile(args: { entries: string[], sources: { path: st
             throw Error('Unexpected compiler response');
         }
     } catch (e) {
-        args.logger.error(errorToString(e));
+        console.error(errorToString(e));
         throw Error('Unexpected compiler response');
     } finally {
         for (let i of allocatedFunctions) {

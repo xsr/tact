@@ -8,7 +8,6 @@ import { funcCompile } from '../func/funcCompile';
 import { writeReport } from '../generator/writeReport';
 import { getRawAST } from '../grammar/store';
 import files from '../imports/stdlib';
-import { consoleLogger, TactLogger } from '../logger';
 import { PackageFileFormat } from '../packaging/fileFormat';
 import { packageCode } from '../packaging/packageCode';
 import { createABITypeRefFromTypeRef } from '../types/resolveABITypeRef';
@@ -23,13 +22,11 @@ import { getCompilerVersion } from './version';
 export async function build(args: {
     config: ConfigProject,
     project: VirtualFileSystem,
-    stdlib: string | VirtualFileSystem,
-    logger?: TactLogger | null | undefined
+    stdlib: string | VirtualFileSystem
 }) {
 
     const { config, project } = args;
     const stdlib = (typeof args.stdlib === 'string') ? createVirtualFileSystem(args.stdlib, files) : args.stdlib;
-    const logger: TactLogger = args.logger || consoleLogger;
 
     // Configure context
     let ctx: CompilerContext = new CompilerContext({ shared: {} });
@@ -39,19 +36,19 @@ export async function build(args: {
     });
     if (config.options) {
         if (config.options.debug) {
-            logger.error('   > 👀 Enabling debug');
+            console.error('   > 👀 Enabling debug');
             ctx = featureEnable(ctx, 'debug');
         }
         if (config.options.masterchain) {
-            logger.error('   > 👀 Enabling masterchain');
+            console.error('   > 👀 Enabling masterchain');
             ctx = featureEnable(ctx, 'masterchain');
         }
         if (config.options.external) {
-            logger.error('   > 👀 Enabling external');
+            console.error('   > 👀 Enabling external');
             ctx = featureEnable(ctx, 'external');
         }
         if (config.options.experimental && config.options.experimental.inline) {
-            logger.error('   > 👀 Enabling inline');
+            console.error('   > 👀 Enabling inline');
             ctx = featureEnable(ctx, 'inline');
         }
     }
@@ -60,8 +57,8 @@ export async function build(args: {
     try {
         ctx = precompile(ctx, project, stdlib, config.path);
     } catch (e) {
-        logger.error('Tact compilation failed');
-        logger.error(errorToString(e));
+        console.error('Tact compilation failed');
+        console.error(errorToString(e));
         return false;
     }
 
@@ -87,7 +84,7 @@ export async function build(args: {
         let codeEntrypoint: string;
 
         // Compiling contract to func
-        logger.log('   > ' + contract + ': tact compiler');
+        console.log('   > ' + contract + ': tact compiler');
         let abi: string;
         try {
             let res = await compile(ctx, contract, config.name + '_' + contract);
@@ -100,14 +97,14 @@ export async function build(args: {
             codeFc = res.output.files.map((v) => ({ path: project.resolve(config.output, v.name), content: v.code }));
             codeEntrypoint = res.output.entrypoint;
         } catch (e) {
-            logger.error('Tact compilation failed');
-            logger.error(errorToString(e));
+            console.error('Tact compilation failed');
+            console.error(errorToString(e));
             ok = false;
             continue;
         }
 
         // Compiling contract to TVM
-        logger.log('   > ' + contract + ': func compiler');
+        console.log('   > ' + contract + ': func compiler');
         let codeBoc: Buffer;
         try {
             let stdlibPath = stdlib.resolve('stdlib.fc');
@@ -128,11 +125,10 @@ export async function build(args: {
                     content: stdlibExCode,
                 },
                 ...codeFc
-                ],
-                logger
+                ]
             });
             if (!c.ok) {
-                logger.error(c.log);
+                console.error(c.log);
                 ok = false;
                 continue;
             }
@@ -140,21 +136,21 @@ export async function build(args: {
             project.writeFile(pathCodeBoc, c.output);
             codeBoc = c.output;
         } catch (e) {
-            logger.error('FunC compiler crashed');
-            logger.error(errorToString(e));
+            console.error('FunC compiler crashed');
+            console.error(errorToString(e));
             ok = false;
             continue;
         }
 
         // Fift decompiler for generated code debug
-        logger.log('   > ' + contract + ': fift decompiler');
+        console.log('   > ' + contract + ': fift decompiler');
         let codeFiftDecompiled: string;
         try {
             codeFiftDecompiled = decompileAll({ src: codeBoc });
             project.writeFile(pathCodeFifDec, codeFiftDecompiled);
         } catch (e) {
-            logger.error('Fift decompiler crashed');
-            logger.error(errorToString(e));
+            console.error('Fift decompiler crashed');
+            console.error(errorToString(e));
             ok = false;
             continue;
         }
@@ -169,19 +165,19 @@ export async function build(args: {
         };
     }
     if (!ok) {
-        logger.log('💥 Compilation failed. Skipping packaging');
+        console.log('💥 Compilation failed. Skipping packaging');
         return false;
     }
 
     // Package
-    logger.log('   > Packaging');
+    console.log('   > Packaging');
     let contracts = getContracts(ctx);
     let packages: PackageFileFormat[] = [];
     for (let contract of contracts) {
-        logger.log('   > ' + contract);
+        console.log('   > ' + contract);
         let artifacts = built[contract];
         if (!artifacts) {
-            logger.error('   > ' + contract + ': no artifacts found');
+            console.error('   > ' + contract + ': no artifacts found');
             return false;
         }
 
@@ -192,7 +188,7 @@ export async function build(args: {
         for (let c of ct.dependsOn) {
             let cd = built[c.name];
             if (!cd) {
-                logger.error('   > ' + cd + ': no artifacts found');
+                console.error('   > ' + cd + ': no artifacts found');
                 return false;
             }
             depends.set(c.uid, Cell.fromBoc(cd.codeBoc)[0]);
@@ -239,11 +235,11 @@ export async function build(args: {
     }
 
     // Bindings
-    logger.log('   > Bindings');
+    console.log('   > Bindings');
     for (let pkg of packages) {
-        logger.log('   > ' + pkg.name);
+        console.log('   > ' + pkg.name);
         if (pkg.init.deployment.kind !== 'system-cell') {
-            logger.error('   > ' + pkg.name + ': unsupported deployment kind ' + pkg.init.deployment.kind);
+            console.error('   > ' + pkg.name + ': unsupported deployment kind ' + pkg.init.deployment.kind);
             return false;
         }
         try {
@@ -255,23 +251,23 @@ export async function build(args: {
             });
             project.writeFile(project.resolve(config.output, config.name + '_' + pkg.name + ".ts"), bindingsServer);
         } catch (e) {
-            logger.error('Bindings compiler crashed');
-            logger.error(errorToString(e));
+            console.error('Bindings compiler crashed');
+            console.error(errorToString(e));
             return false;
         }
     }
 
     // Reports
-    logger.log('   > Reports');
+    console.log('   > Reports');
     for (let pkg of packages) {
-        logger.log('   > ' + pkg.name);
+        console.log('   > ' + pkg.name);
         try {
             let report = writeReport(ctx, pkg);
             let pathBindings = project.resolve(config.output, config.name + '_' + pkg.name + ".md");
             project.writeFile(pathBindings, report);
         } catch (e) {
-            logger.error('Report generation crashed');
-            logger.error(errorToString(e));
+            console.error('Report generation crashed');
+            console.error(errorToString(e));
             return false;
         }
     }

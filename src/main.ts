@@ -23,6 +23,5 @@ export {
 
 export * from './browser';
 export * from './verify';
-export * from './logger';
 export * from './errors';
 export * from './check';

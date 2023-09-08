@@ -3,7 +3,6 @@ import fs from 'fs';
 import { Config, parseConfig } from "./config/parseConfig";
 import { createNodeFileSystem } from './vfs/createNodeFileSystem';
 import { build } from './pipeline/build';
-import { consoleLogger } from './logger';
 
 export async function run(args: { configPath: string, projectNames?: string[] }) {
 
@@ -49,7 +48,7 @@ export async function run(args: { configPath: string, projectNames?: string[] })
     let stdlib = createNodeFileSystem(path.resolve(__dirname, '..', 'stdlib'), false); // Improves developer experience
     for (let config of projects) {
         console.log('💼 Compiling project ' + config.name + '...');
-        let built = await build({ config, project, stdlib, logger: consoleLogger });
+        let built = await build({ config, project, stdlib });
         success = success && built;
     }
     return success;
