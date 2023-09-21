@@ -1,6 +1,5 @@
 import fs from 'fs';
 import path from 'path';
-import { consoleLogger } from '../logger';
 import { funcCompile } from './funcCompile';
 import files from '../imports/stdlib';
 
@@ -12,7 +11,7 @@ describe('funcCompile', () => {
             sources: [{
                 path: '/stdlib.fc',
                 content: Buffer.from(files['stdlib.fc']!, 'base64').toString()
-            }, { path: '/small.fc', content: source }], logger: consoleLogger
+            }, { path: '/small.fc', content: source }]
         });
         expect(res.ok).toBe(true);
     });
