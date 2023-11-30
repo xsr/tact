@@ -13,6 +13,7 @@ import { packageCode } from '../packaging/packageCode';
 import { createABITypeRefFromTypeRef } from '../types/resolveABITypeRef';
 import { getContracts, getType } from '../types/resolveDescriptors';
 import { errorToString } from '../utils/errorToString';
+import { posixNormalize } from '../utils/filePath';
 import { createVirtualFileSystem } from '../vfs/createVirtualFileSystem';
 import { VirtualFileSystem } from '../vfs/VirtualFileSystem';
 import { compile } from './compile';
@@ -94,7 +95,7 @@ export async function build(args: {
             }
             project.writeFile(pathAbi, res.output.abi);
             abi = res.output.abi;
-            codeFc = res.output.files.map((v) => ({ path: project.resolve(config.output, v.name), content: v.code }));
+            codeFc = res.output.files.map((v) => ({ path: posixNormalize(project.resolve(config.output, v.name)), content: v.code }));
             codeEntrypoint = res.output.entrypoint;
         } catch (e) {
             console.error('Tact compilation failed');
@@ -115,7 +116,7 @@ export async function build(args: {
                 entries: [
                     stdlibPath,
                     stdlibExPath,
-                    project.resolve(config.output, codeEntrypoint)
+                    posixNormalize(project.resolve(config.output, codeEntrypoint))
                 ],
                 sources: [{
                     path: stdlibPath,
