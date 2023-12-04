@@ -1,5 +1,5 @@
 import normalize from "path-normalize";
-import { Cell } from "ton-core";
+import { Cell } from "@ton/core";
 import { Config, Options } from "./config/parseConfig";
 import { PackageFileFormat, run } from "./main";
 import { fileFormat } from "./packaging/fileFormat";
