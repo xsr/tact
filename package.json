@@ -1,31 +1,22 @@
 {
-  "name": "@tact-lang/compiler",
-  "version": "1.1.5",
-  "repository": "https://github.com/tact-lang/tact.git",
-  "homepage": "https://tact-lang.org",
-  "description": "Tact is a next-gen smart contract language for TON",
-  "author": "Steve Korshakov <steve@korshakov.com>",
+  "name": "praise",
+  "version": "1.12.4",
+  "repository": "https://github.com/xsr/tact.git",
+  "author": "Steve Korshakov <steve@korshakov.com>, 🔥 Ogień Zawziętych <x.com/zawzietych>",
   "license": "MIT",
   "scripts": {
-    "gen:grammar": "ohm generateBundles --withTypes src/grammar/*.ohm && ts-node ./scripts/grammar.ts",
-    "gen:pack": "ts-node ./scripts/pack.ts",
-    "gen:compiler": "ts-node ./scripts/prepare.ts",
-    "gen": "yarn gen:grammar && yarn gen:pack && yarn gen:compiler",
-    "clean": "rm -fr dist",
-    "build": "tsc && cp ./src/grammar/grammar.ohm* ./dist/grammar/ && cp ./src/func/funcfiftlib.* ./dist/func",
-    "test": "jest",
-    "coverage": "cross-env COVERAGE=true jest",
-    "release": "yarn clean && yarn build && yarn coverage && yarn release-it --npm.yarn1"
+    "grammar": "ohm generateBundles --withTypes src/grammar/*.ohm",
+    "clean": "rm -fr ./dist",
+    "build": "tsc && cp ./src/grammar/grammar.ohm* ./dist/grammar/ && cp ./src/func/funcfiftlib.* ./dist/func"
   },
   "files": [
     "dist/**/*",
     "src/**/*",
-    "bin/**/*",
     "stdlib/**/*"
   ],
   "main": "./dist/main.js",
   "bin": {
-    "tact": "./bin/tact"
+    "tact": "./tact"
   },
   "dependencies": {
     "@ipld/dag-pb": "2.1.18",
@@ -68,19 +59,5 @@
     "ts-node": "^10.9.1",
     "typescript": "^4.9.3",
     "@tact-lang/ton-abi": "^0.0.3"
-  },
-  "publishConfig": {
-    "access": "public",
-    "registry": "https://registry.npmjs.org/"
-  },
-  "release-it": {
-    "github": {
-      "release": true
-    },
-    "plugins": {
-      "@release-it/keep-a-changelog": {
-        "filename": "CHANGELOG.md"
-      }
-    }
   }
 }

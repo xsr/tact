@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-const main = require('../dist/node');
+const main = require('./dist/node');
 const arg = require('arg');
 
 // Resolve arguments
@@ -17,7 +17,7 @@ if (!args['--config']) {
     try {
         await main.run({ configPath: args['--config'], projectNames: args['--project'] ? args['--project'] : [] });
     } catch (e) {
-        console.warn('Internal compiler error. Please, report it to https://github.com/tact-lang/tact/issues.');
+        console.warn('Internal compiler error.');
         console.log(e);
     }
 })();
